@@ -23,7 +23,20 @@ ITM_NAME VARCHAR(45),
 ITM_REASON VARCHAR(45)
 );
 
-
+INSERT INTO products VALUES(1, 'PS5', 2, 799, 3/8/22, 8); 
+INSERT INTO products VALUES(2, 'Xbox Series X', 5, 634, 1/24/22, 15);
+INSERT INTO products VALUES(3, 'Nintendo Switch', 8, 350, 2/4/22, 12);
+INSERT INTO products VALUES(4, 'Super Smash Bros', 21, 45, 2/2/22, 28); 
+INSERT INTO products VALUES(5, 'Call of Duty: Black Ops', 47, 45, 2/24/22, 7); 
+INSERT INTO products VALUES(6, 'Elden Ring', 20, 60, 2/24/22, 30); 
+INSERT INTO products VALUES(7, 'Minecraft', 45, 30, 1/11/22, 20); 
+INSERT INTO products VALUES(8, 'GTA V', 20, 45, 2/13/22, 33);
+INSERT INTO products VALUES(9, 'God of War', 12, 45, 1/3/22, 18); 
+INSERT INTO products VALUES(10, 'Halo 5', 2, 40, 2/8/22, 60); 
+INSERT INTO products VALUES(11, 'Sid Meiers Civilization IV', 14, 25, 12/8/21, 8); 
+INSERT INTO products VALUES(12, 'Turtle Beach Headset', 5, 100, 11/4/21, 4); 
+INSERT INTO products VALUES(13, 'Oculus Quest 2', 5, 400, 3/22/22, 3); 
+INSERT INTO products VALUES(14, 'Xbox Series X Controller', 12, 799, 1/24/22, 8); 
 
 
 

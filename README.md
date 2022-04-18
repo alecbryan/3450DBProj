@@ -22,6 +22,6 @@ data \ Data Base File	\ This file contains everything written in SQLite
 
 main \ Python Source File \ This file contains everything written in Python that allows the user to initialize and interact with the features of our project
 
-main \ UI File	This file contains our GUI 
+main \ UI File \ This file contains our GUI 
 
 

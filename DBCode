@@ -1,0 +1,226 @@
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase
+import sqlite3
+import sys
+
+
+
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
+# QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+# QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+
+conn = sqlite3.connect('data.db')
+cursor = conn.cursor()
+
+
+def fix_sql_list(output):  
+    output = ','.join(str(output))  
+    wrong = "[(',')]"
+    for char in wrong:
+        output = output.replace(char, "")  
+    output = output.split(",")  
+    return output
+
+#main UI
+class Ui(QtWidgets.QMainWindow):
+    def __init__(self):
+        super(Ui, self).__init__()
+        uic.loadUi('main.ui', self)
+        self.showMaximized()
+
+        self.searchButton.clicked.connect(self.loadData)
+        self.addItem.clicked.connect(self.invAdd)
+        self.removeItem.clicked.connect(self.invdelete)
+        self.editSearchButton.clicked.connect(self.invloadData)
+        self.orderbyDate.clicked.connect(self.orderDate)
+        self.orderbySales.clicked.connect(self.ordersales)
+        self.rmvLoad.clicked.connect(self.rmvLoadData)
+        self.lowSales.clicked.connect(self.lowstock)
+
+    def loadData(self):
+        # take input from search bar
+        search = self.searchBar.toPlainText()
+       
+        query="select * from products"
+        result = conn.execute(query)
+
+        #shows all products if nothing is typed
+        if search == "":
+
+            #clearing the table
+            self.mainTable.clearContents()
+            self.mainTable.setRowCount(0)
+            for row_number, row_data in enumerate(result):
+                self.mainTable.insertRow(row_number)
+                for colum_number, data in enumerate(row_data):
+                    self.mainTable.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+            
+        else:
+            query="select * from products Where ITM_NUM LIKE '%" + search + "%' OR ITM_NAME LIKE '%" + search + "%' OR ITM_COST LIKE '%" + search + "%'"
+            result = conn.execute(query)
+            #clearing the table
+            self.mainTable.clearContents()
+            self.mainTable.setRowCount(0)
+            for row_number, row_data in enumerate(result):
+                self.mainTable.insertRow(row_number)
+                for colum_number, data in enumerate(row_data):
+                    self.mainTable.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+
+        header = self.mainTable.horizontalHeader()   
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)  
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)            
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)            
+        
+    def invloadData(self):
+        # Takes input from search bar
+        search = self.editSearchBar.toPlainText()
+
+        query="select * from products"
+        result = conn.execute(query)
+
+        # Shows entire product table if no input is given
+        if search == "":
+
+            #clearing the table
+            self.editData.clearContents()
+            self.editData.setRowCount(0)
+            for row_number, row_data in enumerate(result):
+                self.editData.insertRow(row_number)
+                for colum_number, data in enumerate(row_data):
+                    self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+        
+        # Show most sold 
+        elif search == "top":
+            query="select * from products order by ITM_SALES desc"
+            result = conn.execute(query)
+            self.editData.clearContents()
+            self.editData.setRowCount(0)
+            for row_number, row_data in enumerate(result):
+                self.editData.insertRow(row_number)
+                for colum_number, data in enumerate(row_data):
+                    self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+        else:
+            query="select * from products Where ITM_NUM LIKE '%" + search + "%' OR ITM_NAME LIKE '%" + search + "%' OR ITM_COST LIKE '%" + search + "%'"
+            result = conn.execute(query)
+            #clearing the table
+            self.editData.clearContents()
+            self.editData.setRowCount(0)
+            for row_number, row_data in enumerate(result):
+                self.editData.insertRow(row_number)
+                for colum_number, data in enumerate(row_data):
+                    self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+        
+        header = self.editData.horizontalHeader()   
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)  
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)            
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)            
+  
+    def invAdd(self): 
+        productAtt=["Item Name", "Quantity", "Cost", "Acquire Date", "Sales"]
+        iteminfo=[''        ,''       ,''        ,'MM/DD/YYYY','' ]
+        itemInfoAdd=[""        ,""       ,""       ,""           ,""]
+        sqlnames=[ "ITM_NAME", "ITM_AMT", "ITM_COST", "ITM_DATE", "ITM_SALES"]       
+        count=0
+        for value in productAtt:
+            text = QtWidgets.QInputDialog.getText(self, value, 'Enter ' + value + ' of product you want added. \n\nInput info/tips: ' + iteminfo[count])    
+            if text[1]:
+                itemInfoAdd[count] = text[0]
+            else:
+                break
+            count=count+1
+
+        conn.execute("INSERT INTO products (ITM_NAME, ITM_AMT, ITM_COST, ITM_DATE, ITM_SALES) VALUES (?,?,?,?,?) ", (itemInfoAdd[0],itemInfoAdd[1],itemInfoAdd[2],itemInfoAdd[3],itemInfoAdd[4],))   
+        conn.commit()
+        self.invloadData()
+
+
+    def invdelete(self):
+        text = QtWidgets.QInputDialog.getInt(self, 'Delete Item', 'Enter item number of product you want deleted. !! This CANNOT be undone !!:')    
+        if text[1]:
+            invdelNum = text[0]
+        else:
+            print("exiting")
+        
+        query="select ITM_NAME from products Where ITM_NUM LIKE '%" + str(invdelNum) + "%'"
+        itemdelInfo = conn.execute(query)
+
+
+        query2="delete from products Where ITM_NUM LIKE '%" + str(invdelNum) + "%'"
+        result = conn.execute(query2)
+        
+        itemdelInfo=fix_sql_list(list(itemdelInfo))
+
+        text = QtWidgets.QInputDialog.getText(self, 'Delete Item', 'Why was this item deleted?:')    
+        if text[1]:
+            invdel = text[0]
+        else:
+            print("exiting")
+
+
+        print(list(itemdelInfo))
+
+        for row in itemdelInfo:
+            conn.execute("INSERT INTO product_removed VALUES (?,?,?)", (str(invdelNum), str(row), str(invdel),))  
+        conn.commit()
+        self.invloadData()
+
+    def orderDate(self):
+        query="select * from products order by ITM_DATE DESC"
+        result = conn.execute(query)
+        self.editData.clearContents()
+        self.editData.setRowCount(0)
+        for row_number, row_data in enumerate(result):
+            self.editData.insertRow(row_number)
+            for colum_number, data in enumerate(row_data):
+                self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))
+
+    def ordersales(self):
+        query="select * from products order by ITM_SALES DESC"
+        result = conn.execute(query)
+        self.editData.clearContents()
+        self.editData.setRowCount(0)
+        for row_number, row_data in enumerate(result):
+            self.editData.insertRow(row_number)
+            for colum_number, data in enumerate(row_data):
+                self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))            
+
+    def lowstock(self):
+        text = QtWidgets.QInputDialog.getText(self, "Stock", 'Enter number to show stock ITM_AMT below your selected number')    
+        if text[1]:
+            num = text[0]
+        else:
+            print('exiting')
+        
+        result = conn.execute("SELECT * FROM products WHERE ITM_AMT <= ? ORDER BY ITM_AMT ASC", (str(num),))
+
+        self.editData.clearContents()
+        self.editData.setRowCount(0)
+        for row_number, row_data in enumerate(result):
+            self.editData.insertRow(row_number)
+            for colum_number, data in enumerate(row_data):
+                self.editData.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))  
+        
+    def rmvLoadData(self):
+        query="select * from product_removed"
+        result = conn.execute(query)
+        self.rmvTable.clearContents()
+        self.rmvTable.setRowCount(0)
+        for row_number, row_data in enumerate(result):
+            self.rmvTable.insertRow(row_number)
+            for colum_number, data in enumerate(row_data):
+                self.rmvTable.setItem(row_number, colum_number, QtWidgets.QTableWidgetItem(str(data)))           
+
+app = QtWidgets.QApplication(sys.argv)
+window = Ui()
+app.exec_()
